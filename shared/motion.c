@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 enum Pose { IDLE, FIRE, CRY, SLEEP, HEART, TONGUE, SPARKLE, EMBER, WAVE, HOP, LOOK, DASH };
+enum { DASH_MIN_SECONDS = 5 * 60, DASH_MAX_SECONDS = 15 * 60 };
 struct FCPet {
     enum Pose pose;
     double started, last_step, until_rare, until_dash;
@@ -21,7 +22,7 @@ FCPet *fc_create(void) {
     FCPet *pet = calloc(1, sizeof(*pet));
     if (pet) {
         pet->until_rare = delay(55, 115);
-        pet->until_dash = delay(35 * 60, 65 * 60);
+        pet->until_dash = delay(DASH_MIN_SECONDS, DASH_MAX_SECONDS);
     }
     return pet;
 }
@@ -73,7 +74,7 @@ FCFrame fc_step(FCPet *pet, double now, bool building, bool failed, bool right_c
         if (!reduced) pet->until_dash -= delta;
         if (!reduced && pet->until_dash <= 0) {
             start(pet, DASH, now);
-            pet->until_dash = delay(35 * 60, 65 * 60);
+            pet->until_dash = delay(DASH_MIN_SECONDS, DASH_MAX_SECONDS);
         } else if (pet->until_rare <= 0) {
             static const enum Pose rare[] = {SLEEP,SLEEP,HEART,TONGUE,SPARKLE,EMBER,WAVE,HOP,LOOK};
             start(pet, rare[rand() % (sizeof(rare) / sizeof(rare[0]))], now);

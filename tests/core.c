@@ -17,7 +17,8 @@ static void simulate(bool right) {
         bool gait = !strcmp(f.group, "left") || !strcmp(f.group, "right");
         if (gait && !running) {
             assert(!strcmp(f.group, inward) && fabs(f.dx) < 0.1);
-            assert(idle_steps >= 20990 && idle_steps <= 39020);
+            double idle_seconds = idle_steps / 10.0;
+            assert(idle_seconds >= 5 * 60 && idle_seconds <= 15 * 60 + 0.2);
             idle_steps = 0;
             turned = false;
             trips++;
@@ -27,7 +28,7 @@ static void simulate(bool right) {
         if (gait) assert(right ? f.dx <= 0 : f.dx >= 0);
         running = gait;
     }
-    assert(trips);
+    assert(trips >= 2);
     fc_wave(pet);
     FCFrame wave = fc_step(pet, 5001, false, false, right, false);
     assert(!strcmp(wave.group, "wave"));
