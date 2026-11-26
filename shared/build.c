@@ -53,15 +53,27 @@ static bool matches_build(int argc, const char *argv[]) {
         }
         return false;
     }
+    if (IN(tool, "swift-frontend", "swift-driver")) {
+        for (; i < argc; ++i)
+            if (IN(argv[i], "-c", "-emit-object", "-emit-module", "-emit-library", "-emit-executable")) return true;
+        return false;
+    }
+    if (IN(tool, "esbuild", "webpack", "webpack.js")) {
+        for (int j = i; j < argc; ++j)
+            if (IN(argv[j], "serve", "--watch", "--help", "--version") || !strncmp(argv[j], "--serve=", 8)) return false;
+        return true;
+    }
     if (IN(tool, "make", "gmake", "ninja", "ninja-build", "xcodebuild", "clang", "clang++",
            "gcc", "g++", "cc", "cc1", "cc1plus", "ld", "ld.lld", "lld", "rustc", "swiftc",
            "javac", "tsc", "csc", "MSBuild", "fuecoco-build")) {
         for (; i < argc; ++i)
-            if (IN(argv[i], "--watch", "-w", "--version", "-version", "--help", "-list", "-showBuildSettings", "-fsyntax-only", "-index-file")) return false;
+            if (IN(argv[i], "--watch", "--version", "-version", "--help", "-list", "-showBuildSettings", "-fsyntax-only", "-index-file")) return false;
         return true;
     }
     for (; i < argc; ++i) {
         const char *arg = argv[i];
+        if (IN(tool,"flutter","dart","zig","deno","ng","parcel","vue-cli-service") &&
+            IN(arg,"build","compile","bundle","build-exe","build-lib","build-obj")) return true;
         if (IN(tool,"cmake","meson") && IN(arg,"--build","compile","--install")) return true;
         if (IN(tool,"cargo","go","swift","dotnet","bazel","bazelisk","xcrun") &&
             IN(arg,"build","check","test","publish","install","msbuild","xcodebuild","swiftc","clang")) return true;

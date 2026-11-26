@@ -4,11 +4,16 @@ permissions:
   contents: read
 jobs:
   desktop:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        image: ["archlinux:base", "ubuntu:24.04", "debian:13"]
+        include:
+          - { distro: Arch, image: "archlinux:base" }
+          - { distro: Debian, image: "debian:13" }
+          - { distro: Ubuntu }
+    name: ${{ matrix.distro }}
     container: ${{ matrix.image }}
     steps:
       - name: Install distribution packages
@@ -17,10 +22,12 @@ jobs:
           if command -v pacman >/dev/null; then
             pacman -Syu --noconfirm --needed git gcc make python-pyqt6 python-pillow ca-certificates
           else
-            apt-get update
-            DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends git gcc libc6-dev make python3-pyqt6 python3-pil ca-certificates
+            root=""
+            if [ "$(id -u)" != 0 ]; then root=sudo; fi
+            $root apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=20 update
+            $root env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends git gcc libc6-dev make python3-pyqt6 python3-pil ca-certificates
           fi
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           persist-credentials: false
       - run: ./tests/smoke.sh

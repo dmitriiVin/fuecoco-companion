@@ -16,6 +16,13 @@ int main(void) {
     CASE(false, "tsc", "--watch");
     CASE(false, "java", "org.gradle.launcher.daemon.bootstrap.GradleDaemon", "8.7");
     CASE(false, "bash", "-c", "echo cargo build");
+    CASE(true, "swift-frontend", "-frontend", "-c", "main.swift");
+    CASE(false, "swift-frontend", "-frontend", "-typecheck", "main.swift");
+    CASE(true, "clang", "-w", "-c", "main.c");
+    CASE(true, "webpack", "--mode", "production");
+    CASE(false, "webpack", "serve");
+    CASE(true, "flutter", "build", "apk");
+    CASE(false, "flutter", "daemon");
     CASE(false, "clangd", "--background-index");
     CASE(false, "xcodebuild", "-list");
     if (getenv("PROBE_ONLY")) return fc_sample_build().building ? 0 : 1;
