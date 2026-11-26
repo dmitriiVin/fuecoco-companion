@@ -1,57 +1,46 @@
-# Фуэкоко
+<h1 align="center">Фуэкоко</h1>
 
-Фуэкоко живёт в углу рабочего стола, пропускает щелчки мыши и загорается, когда на компьютере собирается проект. В меню можно выбрать один из четырёх углов и попросить его помахать лапой.
+<p align="center">
+  <img src="docs/fuecoco-moves.gif" width="224" height="150" alt="Фуэкоко машет лапой, подпрыгивает, оглядывается и пробегает несколько шагов">
+</p>
 
-В свободное время он засыпает, машет, подпрыгивает, оглядывается, показывает сердечко или дразнится. Между жестами проходит примерно 55–115 секунд отдыха. После 5–15 минут накопленного простоя он может пробежать 44 точки к центру экрана и вернуться. Сборка сразу получает приоритет при очередной проверке.
+<p align="center">
+  Пиксельный питомец для рабочего стола. Пока собирается проект, Фуэкоко горит.<br>
+  Когда работа стихает, он машет лапой, дремлет или отправляется на короткую пробежку.
+</p>
 
-## Установка на Linux
+<p align="center">
+  <strong>Собрать для</strong>&ensp;
+  <a href="#macos">macOS</a> ·
+  <a href="#arch-linux">Arch Linux</a> ·
+  <a href="#ubuntu">Ubuntu</a> ·
+  <a href="#debian">Debian</a>
+</p>
 
-Нужна графическая сессия. Для предсказуемого положения поверх окон используйте X11. На Wayland положение и порядок окон определяет композитор. Если в сессии доступен XWayland, приложение можно запустить командой `QT_QPA_PLATFORM=xcb ~/.local/bin/fuecoco`. Доступность меню в трее зависит от панели рабочего стола.
+## Что умеет Фуэкоко
 
-### Arch Linux
+Питомец сидит в выбранном углу поверх окон и пропускает щелчки мыши. В меню можно сменить угол или выбрать **«Помахать лапой»**.
 
-```sh
-sudo pacman -Syu --needed git gcc make python-pyqt6 python-pillow ca-certificates
-```
+| Когда | Что делает Фуэкоко |
+| --- | --- |
+| На компьютере собирается проект | Загорается, в том числе при сборке из IDE или терминала. |
+| Команда через `fuecoco-build` вернула ошибку | Плачет около девяти секунд. |
+| Выдалась свободная минута | Может уснуть, подпрыгнуть, оглядеться, показать сердечко или помахать. Между жестами проходит 55–115 секунд отдыха. |
+| Накопилось 5–15 минут простоя | Пробегает 44 точки к центру экрана и возвращается в свой угол. |
 
-### Ubuntu 24.04 и Debian 13
+**На Mac** он также показывает видимые уведомления текстом над головой, рычит после завершения загрузки и реагирует на работу и ошибки Codex. Через меню можно прочитать выделенный текст вслух, распознать текст на картинке, изменить размер изображения или собрать PDF.
 
-```sh
-sudo apt update
-sudo apt install git gcc libc6-dev make python3-pyqt6 python3-pil ca-certificates
-```
+## Сборка из исходников
 
-В Ubuntu пакет PyQt6 находится в репозитории Universe. [Arch Linux](https://archlinux.org/packages/extra/x86_64/python-pyqt6/) · [Ubuntu](https://packages.ubuntu.com/noble/python3-pyqt6) · [Debian](https://packages.debian.org/trixie/python3-pyqt6)
+Каждый блок ниже рассчитан на новую копию репозитория. Во время первой сборки скрипт скачивает спрайт-лист и проверяет его SHA-256.
 
-### Установка и запуск на всех трёх дистрибутивах
+### macOS
+
+Нужны macOS 13 или новее, Python 3.9+ и инструменты командной строки Xcode. При первой установке выполните `xcode-select --install` и дождитесь завершения. [Инструкция Apple](https://developer.apple.com/documentation/xcode/installing-the-command-line-tools/)
 
 ```sh
 git clone https://github.com/dmitriiVin/fuecoco-companion.git
 cd fuecoco-companion
-./scripts/install-linux.sh
-~/.local/bin/fuecoco
-```
-
-После установки Фуэкоко появится в меню приложений. Из терминала можно выбрать угол, например `~/.local/bin/fuecoco --corner top-right`, или ограничить движение флагом `--reduce-motion`. Чтобы обновиться, закройте питомца, выполните `git pull --ff-only` и снова запустите установщик. Для удаления закройте приложение и удалите каталог `${XDG_DATA_HOME:-$HOME/.local/share}/fuecoco-companion`, ярлык `${XDG_DATA_HOME:-$HOME/.local/share}/applications/fuecoco.desktop` и две команды `~/.local/bin/fuecoco` и `~/.local/bin/fuecoco-build`.
-
-## Сборки проектов
-
-Раз в две секунды Фуэкоко ищет знакомые команды среди процессов текущего пользователя. Он замечает локальную работу из терминала, IDE и скриптов. Поддерживаются Make, Ninja, компиляторы C/C++, Xcode, Swift, CMake, Cargo, Go, .NET, распространённые задачи Gradle и Maven, Python `-m build`, Flutter, Zig, Webpack, а также команды вроде `npm run build`, `pnpm build` и `docker build`. Постоянно открытый редактор и `npm run dev` сами по себе оставляют питомца в покое.
-
-Очень короткая сборка может целиком пройти между двумя проверками. Для собственного инструмента, удалённой команды или показа ошибки запустите команду через обёртку. Она передаёт свои аргументы программе, сохраняет код выхода и сообщает о завершении даже мгновенной операции.
-
-```sh
-~/.local/bin/fuecoco-build ./build-project.sh
-~/.local/bin/fuecoco-build cargo build --release
-```
-
-При успешном завершении обёртка оставляет огонь ещё примерно на три секунды. Если команда вернула ошибку, Фуэкоко плачет около девяти секунд. При обычном автоматическом обнаружении доступен только факт выполнения процесса. Задания на отдельном сервере видны питомцу, если локальная обёртка ждёт их завершения.
-
-## macOS 13 и новее
-
-Для сборки понадобятся инструменты командной строки Xcode (`xcode-select --install`) и Python 3.9+ с Pillow. Склонируйте репозиторий, откройте его каталог и выполните команды ниже.
-
-```sh
 python3 -m venv .venv
 . .venv/bin/activate
 python3 -m pip install 'Pillow>=9.1'
@@ -59,20 +48,94 @@ python3 -m pip install 'Pillow>=9.1'
 open build/Fuecoco.app
 ```
 
-Для постоянной установки закройте приложение и перенесите `build/Fuecoco.app` в «Программы». Меню открывается по значку пламени в строке меню. В нём есть пункт «Помахать лапой». Пробежки отключаются системной настройкой «Уменьшение движения». Обёртку можно вызвать следующей командой.
+Готовое приложение лежит в **`build/Fuecoco.app`**. Для постоянной установки закройте питомца и перетащите приложение в «Программы». Меню открывается по значку пламени в строке меню macOS. Пробежки отключает системная настройка «Уменьшение движения».
+
+Для чтения выделенного текста и показа баннеров может понадобиться разрешение «Универсальный доступ», для загрузок — доступ к папке «Загрузки».
+
+### Arch Linux
 
 ```sh
-/Applications/Fuecoco.app/Contents/Resources/fuecoco-build ./build-project.sh
+sudo pacman -Syu --needed git gcc make python-pyqt6 python-pillow ca-certificates
+git clone https://github.com/dmitriiVin/fuecoco-companion.git
+cd fuecoco-companion
+./scripts/install-linux.sh
+~/.local/bin/fuecoco
 ```
 
-В версии для Mac Фуэкоко также реагирует на работу и ошибки Codex, показывает видимые уведомления текстом над головой, следит за загрузками и рычит при завершении. Из меню доступны действия с изображениями и чтение выделенного текста вслух. Для видимых баннеров и чтения выделения macOS может запросить доступ в разделе «Универсальный доступ». Для наблюдения за папкой «Загрузки» используется разрешение «Файлы и папки». Параметры и взаимодействие с другими приложениями остаются на компьютере.
+Установщик компилирует общее ядро на C и добавляет Фуэкоко в меню приложений текущего пользователя. [Пакет PyQt6 в Arch](https://archlinux.org/packages/extra/x86_64/python-pyqt6/)
 
-Linux-версия включает настольное окно, меню, анимации, распознавание сборок и обработку результата обёртки. Интеграции с уведомлениями macOS, Finder, системным чтением выделенного и локальной историей Codex реализованы в версии для Mac.
+### Ubuntu
 
-## Исходники и графика
+Команды для **Ubuntu 24.04 LTS**. Пакет `python3-pyqt6` доступен в репозитории Universe. [Пакет PyQt6 в Ubuntu](https://packages.ubuntu.com/noble/python3-pyqt6)
 
-`macos/` содержит приложение на Swift/AppKit, `linux/` — окно на Python/PyQt6. Обе платформы используют анимации и распознавание сборок из `shared/`. В `scripts/` находятся установщик, генератор кадров и синтез рычания. Установщик загружает оригинальный спрайт-лист и проверяет SHA-256 перед нарезкой. Для автономной установки передайте `--sheet /путь/к/spritesheet.webp` установщику или скрипту сборки. [Фуэкоко в каталоге Pets Codex](https://petscodex.com/pets/fuecoco)
+```sh
+sudo apt update
+sudo apt install git gcc libc6-dev make python3-pyqt6 python3-pil ca-certificates
+git clone https://github.com/dmitriiVin/fuecoco-companion.git
+cd fuecoco-companion
+./scripts/install-linux.sh
+~/.local/bin/fuecoco
+```
 
-Команда `python3 scripts/assets.py build/frames --codex build/codex/fuecoco` дополнительно собирает пакет питомца для Codex с файлами `pet.json` и `spritesheet.webp`. Покемон Fuecoco и исходная графика принадлежат соответствующим правообладателям.
+### Debian
 
-Для проверки на свободном от других сборок компьютере запустите `./tests/smoke.sh`. Проверка моделирует движения из обоих углов и запускает настоящую сборку Make. В Linux после установки можно проверить отрисовку командой `QT_QPA_PLATFORM=offscreen /usr/bin/python3 tests/linux_ui.py`.
+Команды для **Debian 13 (Trixie)**. [Пакет PyQt6 в Debian](https://packages.debian.org/trixie/python3-pyqt6)
+
+```sh
+sudo apt update
+sudo apt install git gcc libc6-dev make python3-pyqt6 python3-pil ca-certificates
+git clone https://github.com/dmitriiVin/fuecoco-companion.git
+cd fuecoco-companion
+./scripts/install-linux.sh
+~/.local/bin/fuecoco
+```
+
+<details>
+<summary><strong>Окно, трей и обновления в Linux</strong></summary>
+
+Для запуска нужна графическая сессия. На X11 Фуэкоко запрашивает размещение поверх окон. На Wayland позицию и порядок окон определяет композитор. Если доступен XWayland, попробуйте `QT_QPA_PLATFORM=xcb ~/.local/bin/fuecoco`. Меню в трее доступно на панелях с поддержкой системных значков.
+
+При запуске можно выбрать угол и ограничить движение, например `~/.local/bin/fuecoco --corner top-right --reduce-motion`.
+
+Чтобы обновиться, закройте питомца, выполните `git pull --ff-only` в каталоге репозитория и снова запустите `./scripts/install-linux.sh`. Для удаления закройте питомца и удалите каталог `${XDG_DATA_HOME:-$HOME/.local/share}/fuecoco-companion`, ярлык `${XDG_DATA_HOME:-$HOME/.local/share}/applications/fuecoco.desktop` и команды `~/.local/bin/fuecoco` и `~/.local/bin/fuecoco-build`.
+
+</details>
+
+## Как подключить свою сборку
+
+Раз в две секунды Фуэкоко проверяет процессы текущего пользователя. Он узнаёт, например, Make, Ninja, CMake, Xcode, Cargo, Go, .NET, Gradle, Maven, Flutter, Zig, Webpack и `npm run build`. Очень короткая сборка может закончиться между проверками.
+
+Чтобы Фуэкоко заметил короткую или нестандартную команду и узнал её результат, запустите её через `fuecoco-build`. Ниже приведены команды для сборки Rust-проекта из его каталога.
+
+```sh
+# macOS, если Фуэкоко установлен в «Программы»
+/Applications/Fuecoco.app/Contents/Resources/fuecoco-build cargo build --release
+
+# Linux
+~/.local/bin/fuecoco-build cargo build --release
+```
+
+Обёртка возвращает код выхода команды. При успехе огонь виден ещё около трёх секунд, при ошибке появляются слёзы. Для удалённой сборки оберните локальную команду, которая ждёт результата.
+
+## Как устроен проект
+
+| Каталог | Содержимое |
+| --- | --- |
+| [macos/](macos/) | Окно на Swift и AppKit, меню, уведомления, загрузки и действия с файлами. |
+| [linux/](linux/) | Прозрачное окно и меню на Python и PyQt6. |
+| [shared/](shared/) | Общее ядро на C. Выбирает кадры и движения, распознаёт процессы сборки. |
+| [scripts/](scripts/) | Сборка для Mac, установка в Linux, подготовка графики и синтез рычания. |
+| [tests/](tests/) | Проверки анимаций, распознавания реальной сборки Make и отрисовки Linux-окна. |
+
+Из корня репозитория запустите `./tests/smoke.sh`, когда остальные сборки завершены. Для проверки отрисовки в Linux после установки выполните `QT_QPA_PLATFORM=offscreen /usr/bin/python3 tests/linux_ui.py`. [Результаты проверок Arch, Ubuntu и Debian](https://github.com/dmitriiVin/fuecoco-companion/actions/workflows/linux.yml)
+
+<details>
+<summary><strong>Графика, автономная сборка и пакет для Codex</strong></summary>
+
+Оригинальные кадры взяты из каталога Pets Codex. Персонаж Fuecoco и исходная графика принадлежат соответствующим правообладателям. [Страница Фуэкоко в каталоге](https://petscodex.com/pets/fuecoco)
+
+Если оригинальный спрайт-лист уже скачан, передайте `--sheet /путь/к/spritesheet.webp` скрипту `build-mac.sh` или `install-linux.sh`. Контрольная сумма проверяется и для локального файла.
+
+Чтобы собрать отдельный пакет для Codex, запустите `python3 scripts/assets.py build/frames --codex build/codex/fuecoco` в окружении с Pillow. В `build/codex/fuecoco/` появятся `pet.json` и `spritesheet.webp`.
+
+</details>
