@@ -26,7 +26,9 @@ class Build(c.Structure):
 def load_core():
     lib = c.CDLL(str(ROOT / "libfuecoco.so"))
     lib.fc_create.restype = c.c_void_p
-    lib.fc_destroy.argtypes = lib.fc_wave.argtypes = [c.c_void_p]
+    for command in (lib.fc_destroy, lib.fc_wave, lib.fc_dash, lib.fc_sneeze, lib.fc_hearts):
+        command.argtypes = [c.c_void_p]
+        command.restype = None
     lib.fc_step.argtypes = [c.c_void_p, c.c_double] + [c.c_bool] * 4
     lib.fc_step.restype = Frame
     lib.fc_sample_build.restype = Build
@@ -56,8 +58,13 @@ class Pet(QWidget):
         self.build = Build()
         self.next_poll = 0
         self.menu = QMenu()
-        self.wave = self.menu.addAction("Помахать лапой")
-        self.wave.triggered.connect(lambda: self.core.fc_wave(self.pet))
+        self.gestures = self.menu.addMenu("Анимации")
+        for label, command in [("Помахать лапой", self.core.fc_wave), ("Пробежаться", self.core.fc_dash),
+                               ("Чихнуть", self.core.fc_sneeze), ("Пустить сердечки", self.core.fc_hearts)]:
+            action = self.gestures.addAction(label)
+            action.triggered.connect(lambda checked=False, play=command: play(self.pet))
+            if command == self.core.fc_dash:
+                action.setEnabled(not self.reduced)
         self.menu.addSeparator()
         self.choices = QActionGroup(self)
         for key, label in CORNERS.items():
@@ -100,7 +107,7 @@ class Pet(QWidget):
             self.next_poll = now + 2
             self.build = self.core.fc_sample_build()
             self.tray.setToolTip("Фуэкоко · идёт сборка" if self.build.building else "Фуэкоко")
-            self.wave.setEnabled(not (self.build.building or self.build.failed))
+            self.gestures.setEnabled(not (self.build.building or self.build.failed))
         self.frame = self.core.fc_step(self.pet, now, self.build.building, self.build.failed,
                                        self.corner.endswith("right"), self.reduced)
         self.update()

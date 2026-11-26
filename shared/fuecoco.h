@@ -12,6 +12,9 @@ typedef struct {
 FCPet *fc_create(void);
 void fc_destroy(FCPet *pet);
 void fc_wave(FCPet *pet);
+void fc_dash(FCPet *pet);
+void fc_sneeze(FCPet *pet);
+void fc_hearts(FCPet *pet);
 FCFrame fc_step(FCPet *pet, double monotonic, bool building, bool failed, bool right_corner, bool reduced);
 
 typedef struct {

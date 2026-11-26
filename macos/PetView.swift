@@ -12,7 +12,7 @@ final class PetView: NSView {
     init?(size: NSSize) {
         super.init(frame: NSRect(origin: .zero,size:size))
         registerForDraggedTypes([.fileURL])
-        for (name,count) in [("idle",6),("flame",8),("tears",6),("sleep",6),("rare",6),("left",8),("right",8),("wave",3),("hop",5),("look",3)] {
+        for (name,count) in [("idle",6),("flame",8),("tears",6),("sleep",6),("rare",6),("left",8),("right",8),("wave",3),("hop",5),("look",3),("sneeze",8),("hearts",11)] {
             let frames = (0..<count).compactMap { i in
                 Bundle.main.url(forResource:"\(name)-\(i)",withExtension:"png").flatMap(NSImage.init(contentsOf:))
             }

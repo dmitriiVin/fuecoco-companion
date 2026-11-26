@@ -32,6 +32,7 @@ final class Companion: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenuIt
     private var revealDownloadItem: NSMenuItem!
     private var idleDragCount = NSPasteboard(name:.drag).changeCount
     private let speechMenu = NSMenu()
+    private let gesturesMenu = NSMenu()
     private let monitor = CodexActivity()
     private let reader = DispatchQueue(label: "local.fuecoco.activity", qos: .utility)
     private var reading = false
@@ -105,8 +106,11 @@ final class Companion: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenuIt
         let read = menu.addItem(withTitle:selection.hasShortcut ? "Прочитать / остановить выделенное   ⌃⇧R" : "Прочитать / остановить выделенное",action:#selector(SelectionReader.fromMenu),keyEquivalent:"")
         read.target = selection
         menu.addItem(.separator())
-        let wave = menu.addItem(withTitle: "Помахать лапой", action: #selector(wavePaw), keyEquivalent: "")
-        wave.target = self
+        menu.addItem(withTitle: "Анимации", action: nil, keyEquivalent: "").submenu = gesturesMenu
+        for (name, action) in [("Помахать лапой", #selector(wavePaw)), ("Пробежаться", #selector(dash)),
+                               ("Чихнуть", #selector(sneeze)), ("Пустить сердечки", #selector(hearts))] {
+            gesturesMenu.addItem(withTitle: name, action: action, keyEquivalent: "").target = self
+        }
         for item in Corner.allCases {
             let choice = menu.addItem(withTitle: item.rawValue, action: #selector(chooseCorner(_:)), keyEquivalent: "")
             choice.target = self
@@ -162,6 +166,9 @@ final class Companion: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenuIt
     }
 
     @objc private func wavePaw() { fc_wave(mood) }
+    @objc private func dash() { fc_dash(mood) }
+    @objc private func sneeze() { fc_sneeze(mood) }
+    @objc private func hearts() { fc_hearts(mood) }
 
     @objc private func chooseImages() { fileActions.chooseFiles() }
 
@@ -274,7 +281,8 @@ final class Companion: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenuIt
     func menuWillOpen(_ menu: NSMenu) { if menu === statusItem.menu { selection.menuWillOpen() } }
 
     func validateMenuItem(_ item: NSMenuItem) -> Bool {
-        if item.action == #selector(wavePaw) {
+        if item.menu === gesturesMenu {
+            if item.action == #selector(dash) && NSWorkspace.shared.accessibilityDisplayShouldReduceMotion { return false }
             let recentError = activity.failedAt > 0 && Date().timeIntervalSince1970 - activity.failedAt < 9
             return !(build.building || activity.working || build.failed || recentError)
         }

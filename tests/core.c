@@ -43,8 +43,34 @@ static void simulate(bool right) {
     fc_destroy(pet);
 }
 
+static void check_gestures(void) {
+    FCPet *pet = fc_create();
+    assert(pet);
+    fc_sneeze(pet);
+    fc_step(pet, 1, false, false, false, false);
+    for (int i = 0; i < 8; ++i) {
+        FCFrame f = fc_step(pet, 1.05 + i * 0.2, false, false, false, false);
+        assert(!strcmp(f.group, "sneeze") && f.frame == i);
+    }
+    assert(!strcmp(fc_step(pet, 2.62, false, false, false, false).group, "idle"));
+    fc_hearts(pet);
+    fc_step(pet, 3, false, false, false, false);
+    for (int i = 0; i < 11; ++i) {
+        FCFrame f = fc_step(pet, 3.05 + i * 0.2, false, false, false, false);
+        assert(!strcmp(f.group, "hearts") && f.frame == i);
+    }
+    assert(!strcmp(fc_step(pet, 5.21, false, false, false, false).group, "idle"));
+    fc_dash(pet);
+    assert(!strcmp(fc_step(pet, 6, false, false, false, true).group, "idle"));
+    fc_hearts(pet);
+    assert(!strcmp(fc_step(pet, 7, true, false, false, false).group, "flame"));
+    assert(!strcmp(fc_step(pet, 7.1, false, false, false, false).group, "idle"));
+    fc_destroy(pet);
+}
+
 int main(void) {
+    check_gestures();
     simulate(false);
     simulate(true);
-    puts("Wave, work/error priority, short runs from both sides and reduced motion passed");
+    puts("Gestures, work/error priority, short runs from both sides and reduced motion passed");
 }

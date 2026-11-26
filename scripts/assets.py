@@ -8,6 +8,8 @@ from urllib.request import urlopen
 
 from PIL import Image, ImageOps
 
+from gestures import render_gestures
+
 URL = "https://petscodex.com/pet-image.php?pet=fuecoco&image=spritesheet.webp&v=24e6c1aaca7f0a75"
 SHA256 = "512495104b22e0df692c2fb205e1d941d30bd94f06ab459048f4081e7102b800"
 
@@ -41,6 +43,8 @@ for i, frame in enumerate([cell(0,0), cell(3,1), cell(3,0)]):
     frame.save(args.output / f"wave-{i}.png")
 for i, frame in enumerate([cell(0,0), cell(3,2), ImageOps.mirror(cell(3,2))]):
     frame.save(args.output / f"look-{i}.png")
+
+render_gestures(cell, args.output)
 
 if args.mac_icon:
     icon = cell(0,0)
