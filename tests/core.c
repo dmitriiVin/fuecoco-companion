@@ -68,7 +68,43 @@ static void check_gestures(void) {
     fc_destroy(pet);
 }
 
+static void check_run_timing(void) {
+    FCPet *pet = fc_create();
+    assert(pet);
+    double due = fc_dash_remaining(pet);
+    assert(due >= 300 && due <= 900);
+    fc_step(pet, 0, false, false, false, false);
+    fc_step(pet, 15, false, false, false, false);
+    assert(fabs(fc_dash_remaining(pet) - (due - 15)) < 0.0001);
+    fc_step(pet, 16, true, false, false, false);
+    fc_step(pet, 2000, true, false, false, false);
+    assert(fabs(fc_dash_remaining(pet) - (due - 15)) < 0.0001);
+    fc_step(pet, 2001, false, false, false, false);
+    FCFrame due_run = fc_step(pet, 2001 + due, false, false, false, false);
+    assert(!strcmp(due_run.group, "right") && due_run.dx == 0);
+
+    for (int side = 0; side < 2; ++side) {
+        double now = 4000 + side * 10;
+        fc_step(pet, now - 1, true, false, side, false);
+        fc_dash(pet);
+        FCFrame start = fc_step(pet, now, true, false, side, false);
+        assert(!strcmp(start.group, side ? "left" : "right"));
+        FCFrame peak = fc_step(pet, now + 1.2, true, false, side, false);
+        assert(fabs(peak.dx - (side ? -44 : 44)) < 0.01);
+        FCFrame back = fc_step(pet, now + 2, true, false, side, false);
+        assert(!strcmp(back.group, side ? "right" : "left") && fabs(back.dx) < 16);
+        FCFrame done = fc_step(pet, now + 2.5, true, false, side, false);
+        assert(!strcmp(done.group, "flame") && done.dx == 0);
+    }
+    fc_dash(pet);
+    assert(!strcmp(fc_step(pet, 5000, true, false, false, true).group, "flame"));
+    fc_dash(pet);
+    assert(!strcmp(fc_step(pet, 5001, true, true, false, false).group, "tears"));
+    fc_destroy(pet);
+}
+
 int main(void) {
+    check_run_timing();
     check_gestures();
     simulate(false);
     simulate(true);

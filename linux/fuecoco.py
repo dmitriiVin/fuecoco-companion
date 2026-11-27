@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import argparse
 import ctypes as c
+import math
 from pathlib import Path
 import signal
 import sys
@@ -29,6 +30,8 @@ def load_core():
     for command in (lib.fc_destroy, lib.fc_wave, lib.fc_dash, lib.fc_sneeze, lib.fc_hearts):
         command.argtypes = [c.c_void_p]
         command.restype = None
+    lib.fc_dash_remaining.argtypes = [c.c_void_p]
+    lib.fc_dash_remaining.restype = c.c_double
     lib.fc_step.argtypes = [c.c_void_p, c.c_double] + [c.c_bool] * 4
     lib.fc_step.restype = Frame
     lib.fc_sample_build.restype = Build
@@ -59,12 +62,16 @@ class Pet(QWidget):
         self.next_poll = 0
         self.menu = QMenu()
         self.gestures = self.menu.addMenu("Анимации")
+        self.dash_status = self.gestures.addAction("")
+        self.dash_status.setEnabled(False)
+        self.gestures.addSeparator()
+        self.gesture_actions = []
+        self.gestures.aboutToShow.connect(self.update_gestures)
         for label, command in [("Помахать лапой", self.core.fc_wave), ("Пробежаться", self.core.fc_dash),
                                ("Чихнуть", self.core.fc_sneeze), ("Пустить сердечки", self.core.fc_hearts)]:
             action = self.gestures.addAction(label)
             action.triggered.connect(lambda checked=False, play=command: play(self.pet))
-            if command == self.core.fc_dash:
-                action.setEnabled(not self.reduced)
+            self.gesture_actions.append((action, command))
         self.menu.addSeparator()
         self.choices = QActionGroup(self)
         for key, label in CORNERS.items():
@@ -101,13 +108,26 @@ class Pet(QWidget):
         y = area.bottom() - self.height() - 7 if self.corner.startswith("bottom") else area.top() + 8
         self.move(x, y)
 
+    def update_gestures(self):
+        minutes = math.ceil(self.core.fc_dash_remaining(self.pet) / 60)
+        if self.reduced:
+            status = "Пробежки отключены: уменьшение движения"
+        elif self.build.building or self.build.failed:
+            status = f"Автопробежка на паузе · осталось ≈ {minutes} мин простоя"
+        else:
+            status = f"До автопробежки ≈ {minutes} мин простоя"
+        self.dash_status.setText(status)
+        for action, command in self.gesture_actions:
+            available = not self.reduced if command == self.core.fc_dash else not self.build.building
+            action.setEnabled(available and not self.build.failed)
+
     def tick(self):
         now = time.monotonic()
         if now >= self.next_poll:
             self.next_poll = now + 2
             self.build = self.core.fc_sample_build()
             self.tray.setToolTip("Фуэкоко · идёт сборка" if self.build.building else "Фуэкоко")
-            self.gestures.setEnabled(not (self.build.building or self.build.failed))
+            self.update_gestures()
         self.frame = self.core.fc_step(self.pet, now, self.build.building, self.build.failed,
                                        self.corner.endswith("right"), self.reduced)
         self.update()

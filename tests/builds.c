@@ -21,6 +21,8 @@ int main(void) {
     CASE(true, "clang", "-w", "-c", "main.c");
     CASE(true, "webpack", "--mode", "production");
     CASE(false, "webpack", "serve");
+    CASE(false, "esbuild", "--service=0.25.1", "--ping");
+    CASE(true, "esbuild", "src/main.ts", "--bundle");
     CASE(true, "flutter", "build", "apk");
     CASE(false, "flutter", "daemon");
     CASE(false, "clangd", "--background-index");

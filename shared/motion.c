@@ -10,6 +10,7 @@ struct FCPet {
     enum Pose pose;
     double started, last_step, until_rare, until_dash;
     enum Pose requested;
+    bool manual_dash;
 };
 
 static double delay(int minimum, int maximum) {
@@ -21,6 +22,7 @@ FCPet *fc_create(void) {
     if (!seeded) { srand((unsigned)time(NULL) ^ (unsigned)getpid()); seeded = true; }
     FCPet *pet = calloc(1, sizeof(*pet));
     if (pet) {
+        pet->last_step = -1;
         pet->until_rare = delay(55, 115);
         pet->until_dash = delay(DASH_MIN_SECONDS, DASH_MAX_SECONDS);
     }
@@ -29,6 +31,7 @@ FCPet *fc_create(void) {
 void fc_destroy(FCPet *pet) { free(pet); }
 void fc_wave(FCPet *pet) { pet->requested = WAVE; }
 void fc_dash(FCPet *pet) { pet->requested = DASH; }
+double fc_dash_remaining(const FCPet *pet) { return fmax(0, pet->until_dash); }
 void fc_sneeze(FCPet *pet) { pet->requested = SNEEZE; }
 void fc_hearts(FCPet *pet) { pet->requested = HEART; }
 
@@ -54,15 +57,19 @@ static const struct Clip clips[] = {
     [DASH] = {"right", {0,1,2,3,4,5,6,7}, 8, 2.4}
 };
 static void start(FCPet *pet, enum Pose pose, double now) {
+    pet->manual_dash = false;
     pet->pose = pose;
     pet->started = now;
 }
 
 FCFrame fc_step(FCPet *pet, double now, bool building, bool failed, bool right_corner, bool reduced) {
-    // A sleep/wake or a paused event loop must not count as hours of idle time.
-    double delta = pet->last_step > 0 ? fmin(1, fmax(0, now - pet->last_step)) : 0;
+    // Both callers supply system uptime. Delayed UI callbacks still represent real elapsed idle time.
+    double delta = pet->last_step >= 0 ? fmax(0, now - pet->last_step) : 0;
     pet->last_step = now;
-    if (failed || building) {
+    bool requested_dash = pet->requested == DASH && !reduced;
+    bool playing_dash = pet->manual_dash && pet->requested == IDLE && !reduced &&
+                        now - pet->started < clips[DASH].duration;
+    if (failed || (building && !requested_dash && !playing_dash)) {
         enum Pose next = failed ? CRY : FIRE;
         if (pet->pose != next) start(pet, next, now);
         pet->requested = IDLE;
@@ -72,6 +79,7 @@ FCFrame fc_step(FCPet *pet, double now, bool building, bool failed, bool right_c
         if (requested == DASH && reduced) requested = IDLE;
         if (requested == DASH) pet->until_dash = delay(DASH_MIN_SECONDS, DASH_MAX_SECONDS);
         start(pet, requested, now);
+        pet->manual_dash = requested == DASH;
         pet->until_rare = delay(55, 115);
     } else if (pet->pose == FIRE || pet->pose == CRY) {
         start(pet, IDLE, now);

@@ -25,11 +25,22 @@ pet.set_corner("bottom-right")
 assert pet.pos().x() > a
 expected = {"Помахать лапой": b"wave", "Пробежаться": b"left",
             "Чихнуть": b"sneeze", "Пустить сердечки": b"hearts"}
-for action in pet.gestures.actions():
+for action, _ in pet.gesture_actions:
     action.trigger()
     pet.tick()
     assert pet.frame.group == expected.pop(action.text())
 assert not expected
+pet.build.building = True
+pet.update_gestures()
+assert "на паузе" in pet.dash_status.text()
+dash = next(action for action, _ in pet.gesture_actions if action.text() == "Пробежаться")
+assert dash.isEnabled()
+dash.trigger()
+pet.tick()
+assert pet.frame.group == b"left"
+pet.reduced = True
+pet.update_gestures()
+assert not dash.isEnabled()
 snapshot = pet.grab().toImage()
 assert any(snapshot.pixelColor(x,y).alpha() for x in range(0,snapshot.width(),6)
            for y in range(0,snapshot.height(),6))

@@ -33,6 +33,7 @@ final class Companion: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenuIt
     private var idleDragCount = NSPasteboard(name:.drag).changeCount
     private let speechMenu = NSMenu()
     private let gesturesMenu = NSMenu()
+    private let dashStatus = NSMenuItem()
     private let monitor = CodexActivity()
     private let reader = DispatchQueue(label: "local.fuecoco.activity", qos: .utility)
     private var reading = false
@@ -107,6 +108,9 @@ final class Companion: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenuIt
         read.target = selection
         menu.addItem(.separator())
         menu.addItem(withTitle: "Анимации", action: nil, keyEquivalent: "").submenu = gesturesMenu
+        gesturesMenu.delegate = self
+        gesturesMenu.addItem(dashStatus)
+        gesturesMenu.addItem(.separator())
         for (name, action) in [("Помахать лапой", #selector(wavePaw)), ("Пробежаться", #selector(dash)),
                                ("Чихнуть", #selector(sneeze)), ("Пустить сердечки", #selector(hearts))] {
             gesturesMenu.addItem(withTitle: name, action: action, keyEquivalent: "").target = self
@@ -282,14 +286,26 @@ final class Companion: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenuIt
 
     func validateMenuItem(_ item: NSMenuItem) -> Bool {
         if item.menu === gesturesMenu {
-            if item.action == #selector(dash) && NSWorkspace.shared.accessibilityDisplayShouldReduceMotion { return false }
             let recentError = activity.failedAt > 0 && Date().timeIntervalSince1970 - activity.failedAt < 9
-            return !(build.building || activity.working || build.failed || recentError)
+            if build.failed || recentError { return false }
+            if item.action == #selector(dash) { return !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion }
+            return !(build.building || activity.working)
         }
         return true
     }
 
     func menuNeedsUpdate(_ menu: NSMenu) {
+        if menu === gesturesMenu {
+            let mins = Int(ceil(fc_dash_remaining(mood) / 60))
+            if NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
+                dashStatus.title = "Пробежки отключены: уменьшение движения"
+            } else if build.building || activity.working || build.failed || Date().timeIntervalSince1970 - activity.failedAt < 9 {
+                dashStatus.title = "Автопробежка на паузе · осталось ≈ \(mins) мин простоя"
+            } else {
+                dashStatus.title = "До автопробежки ≈ \(mins) мин простоя"
+            }
+            return
+        }
         if menu === speechMenu {
             for item in menu.items where item.action == #selector(chooseSpeech(_:)) {
                 item.state = item.tag == banners.mode.rawValue ? .on : .off

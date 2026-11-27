@@ -58,6 +58,10 @@ static bool matches_build(int argc, const char *argv[]) {
             if (IN(argv[i], "-c", "-emit-object", "-emit-module", "-emit-library", "-emit-executable")) return true;
         return false;
     }
+    if (equal(tool, "esbuild")) {
+        for (int j = i; j < argc; ++j)
+            if (!strncmp(argv[j], "--service=", 10)) return false;
+    }
     if (IN(tool, "esbuild", "webpack", "webpack.js")) {
         for (int j = i; j < argc; ++j)
             if (IN(argv[j], "serve", "--watch", "--help", "--version") || !strncmp(argv[j], "--serve=", 8)) return false;
